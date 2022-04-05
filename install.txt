@@ -1,0 +1,37 @@
+
+
+# install
+
+apt update
+apt install python3 -y
+apt install python3-pip -y
+apt install net-tools -y
+pip3 install scapy sh numpy argparse requests netaddr libpcap
+apt install libpcap0.8 libtrace-dev libldns-dev python3-dev python3-virtualenv -y
+apt install python-pycurl -y
+apt install libssl-dev libcurl4-openssl-dev python3.8-dev -y
+iptables -A OUTPUT -p tcp --tcp-flags RST RST -j DROP
+alias python=python3 >> ~/.bashrc
+
+git clone https://github.com/nevil-brownlee/python-libtrace.git
+pushd python-libtrace && make install-py3 && popd
+pip3 install pycurl pyroute2
+
+git clone https://github.com/mami-project/pathspider.git
+pushd pathspider && \
+    pip3 install -r requirements.txt && \
+    pip3 install -r requirements_dev.txt && \
+    python3 setup.py install && popd
+
+# test 
+pspdr test
+
+# set up target list
+cat examples/traceroute_ip_list.txt | sed -n '1, 20000p' >  examples/web_20000.txt
+
+# put your interface name with -i option
+# dns query and get the ip list
+pspdr measure -i eth0 -w 100 --csv dnsresolv < examples/list.txt> examples/cuboulder_docker.ndjson
+
+# send ecn packet to the ip list
+pspdr measure -i eth0 -w 100 ecn < examples/cuboulder_docker.ndjson > cuboulder_docker.ndjson
